@@ -1,0 +1,5 @@
+az		ap-south-1
+
+user pool id	ap-south-1_TOz2PRMwh
+
+app client id	4gco1icvh412q2o014bjfk6576

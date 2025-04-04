@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow | Modern Task Manager</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1125.0.min.js"></script>
+</head>
+<body>
+    <!-- Authentication Section -->
+    <div id="auth-container" class="container">
+        <div class="auth-wrapper">
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <div class="app-logo">
+                    <i class="fas fa-tasks"></i>
+                    <span>TaskFlow</span>
+                </div>
+                <h2>Welcome back</h2>
+                <p class="form-subtitle">Sign in to your account</p>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="text" id="username" placeholder="Email">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password">
+                </div>
+                <button class="primary-btn" onclick="login()">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <p class="auth-toggle">
+                    Don't have an account? 
+                    <a href="#" onclick="showForm('signup')">Sign up</a>
+                </p>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" class="auth-form" style="display:none;">
+                <div class="app-logo">
+                    <i class="fas fa-tasks"></i>
+                    <span>TaskFlow</span>
+                </div>
+                <h2>Create an account</h2>
+                <p class="form-subtitle">Get started with TaskFlow</p>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="signup-username" placeholder="Username">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="signup-email" placeholder="Email">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="signup-password" placeholder="Password">
+                </div>
+                <button class="primary-btn" onclick="signup()">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+                <p class="auth-toggle">
+                    Already have an account? 
+                    <a href="#" onclick="showForm('login')">Login</a>
+                </p>
+            </div>
+
+            <!-- Confirmation Form -->
+            <div id="confirm-form" class="auth-form" style="display:none;">
+                <div class="app-logo">
+                    <i class="fas fa-tasks"></i>
+                    <span>TaskFlow</span>
+                </div>
+                <h2>Verify your account</h2>
+                <p class="form-subtitle">Check your email for the code</p>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="confirm-username" placeholder="Username" readonly>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="confirmation-code" placeholder="Confirmation Code">
+                </div>
+                <button class="primary-btn" onclick="confirmSignup()">
+                    <i class="fas fa-check-circle"></i> Confirm
+                </button>
+                <p class="auth-toggle">
+                    <a href="#" onclick="resendConfirmation()">
+                        <i class="fas fa-redo"></i> Resend code
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Manager Section -->
+    <div id="task-manager" class="container" style="display:none;">
+
+
+        <!-- Header -->
+<div class="content-header">
+    <div class="header-left">
+        <div class="app-logo">
+            <i class="fas fa-tasks"></i>
+            <h1>TaskFlow</h1>
+        </div>
+    </div>
+    <div class="header-actions">
+        <div class="user-profile">
+            <span id="current-user" class="username"></span>
+            <button class="icon-btn" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="total-tasks">0</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="completed-tasks">0</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-orange">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="pending-tasks">0</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-red">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="overdue-tasks">0</span>
+                    <span class="stat-label">Overdue</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Creation -->
+        <div class="task-form">
+            <div class="form-header">
+                <h2>Create New Task</h2>
+                <button class="icon-btn" id="toggle-form">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="form-content">
+                <div class="input-group">
+                    <input type="text" id="task-title" placeholder="Task title...">
+                </div>
+                <div class="input-group">
+                    <textarea id="task-description" placeholder="Description..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-calendar"></i>
+                        <input type="date" id="task-due-date">
+                    </div>
+                    <button class="primary-btn" onclick="createTask()">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Controls -->
+        <div class="task-controls">
+            <div class="controls-left">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="task-search" placeholder="Search tasks..." oninput="searchTasks()">
+                </div>
+            </div>
+            <div class="controls-right">
+                <select id="status-filter">
+                    <option value="all">All Tasks</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                </select>
+                <select id="sort-by">
+                    <option value="due_date">Due Date</option>
+                    <option value="created_at">Created Date</option>
+                </select>
+                <button class="secondary-btn" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-header">
+                <span>Task Completion</span>
+                <span id="progress-text">0/0 tasks (0%)</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions">
+            <div class="bulk-select">
+                <input type="checkbox" id="bulk-select-all">
+                <label for="bulk-select-all">Select all</label>
+            </div>
+            <select id="bulk-action-select">
+                <option value="">Bulk Actions</option>
+                <option value="Completed">Mark Completed</option>
+                <option value="Pending">Mark Pending</option>
+                <option value="delete">Delete Selected</option>
+            </select>
+            <button class="secondary-btn" onclick="handleBulkAction(document.getElementById('bulk-action-select').value)">
+                <i class="fas fa-check"></i> Apply
+            </button>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list-container">
+            <table id="task-list">
+                <thead>
+                    <tr>
+                        <th width="40px"><input type="checkbox" id="select-all-header" style="display:none"></th>
+                        <th>Task</th>
+                        <th width="150px">Status</th>
+                        <th width="120px">Due Date</th>
+                        <th width="120px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Confirm Action</h3>
+                <button class="icon-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="modal-confirm" class="danger-btn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+</html>
